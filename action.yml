@@ -7,14 +7,8 @@ inputs:
   cluster:
     description: "The name of the ECS service's cluster.  Will default to the 'default' cluster"
     required: false
-  task-definition:
-    description: 'The name of the task-definition'
-    required: true
-  subnets:
-    description: 'The list of subnets'
-    required: true
-  security-groups:
-    description: 'The list of Security Groups'
+  service:
+    description: 'The name of the service'
     required: true
   override-container:
     description: 'The container whose command should be overridden'
@@ -22,16 +16,15 @@ inputs:
   override-container-command:
     description: 'The command to to be run on the overrided container'
     required: false
-  assign-public-ip:
-    description: 'Assign public IP to the task. (ENABLED/DISABLED)'
-    required: false
-    default: 'ENABLED'
 
 outputs:
   task-arn:
     description: 'The ARN for the tash that finished running'
   status:
     description: 'The status of the task, success for sucesssful tasks.'
+  task-definition:
+    description: 'Task definition uid'
+
 runs:
   using: 'node12'
   main: 'dist/index.js'

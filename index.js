@@ -5,17 +5,28 @@ const ecs = new AWS.ECS();
 
 const main = async () => {
   const cluster = core.getInput("cluster", { required: true });
-  const taskDefinition = core.getInput("task-definition", { required: true });
-  const subnets = core.getMultilineInput("subnets", { required: true });
-  const securityGroups = core.getMultilineInput("security-groups", {
-    required: true,
-  });
+  const service = core.getInput("service", { required: true });
 
-  const assignPublicIp =
-    core.getInput("assign-public-ip", { required: false }) || "ENABLED";
   const overrideContainer = core.getInput("override-container", {
     required: false,
   });
+
+  // Get network configuration from aws directly from describe services
+  core.debug("Getting information from service...");
+  const info = await ecs.describeServices({ cluster, services: [service] }).promise();
+
+  if (!info || !info.services[0]) {
+    throw new Error(`Could not find service ${service} in cluster ${cluster}`);
+  }
+
+  if (!info.services[0].networkConfiguration) {
+    throw new Error(`Service ${service} in cluster ${cluster} does not have a network configuration`);
+  }
+
+  const taskDefinition = info.services[0].taskDefinition;
+  const networkConfiguration = info.services[0].networkConfiguration;
+  core.setOutput("task-definition", taskDefinition);
+
   const overrideContainerCommand = core.getMultilineInput(
     "override-container-command",
     {
@@ -26,15 +37,8 @@ const main = async () => {
   const taskParams = {
     taskDefinition,
     cluster,
-    count: 1,
     launchType: "FARGATE",
-    networkConfiguration: {
-      awsvpcConfiguration: {
-        subnets,
-        assignPublicIp,
-        securityGroups,
-      },
-    },
+    networkConfiguration,
   };
 
   try {
@@ -84,7 +88,7 @@ const main = async () => {
       );
     }
   } catch (error) {
-    core.setFailed(error.message);
+    core.setFailed(error);
   }
 };
 
