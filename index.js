@@ -11,37 +11,37 @@ const main = async () => {
     required: false,
   });
 
-  // Get network configuration from aws directly from describe services
-  core.debug("Getting information from service...");
-  const info = await ecs.describeServices({ cluster, services: [service] }).promise();
-
-  if (!info || !info.services[0]) {
-    throw new Error(`Could not find service ${service} in cluster ${cluster}`);
-  }
-
-  if (!info.services[0].networkConfiguration) {
-    throw new Error(`Service ${service} in cluster ${cluster} does not have a network configuration`);
-  }
-
-  const taskDefinition = info.services[0].taskDefinition;
-  const networkConfiguration = info.services[0].networkConfiguration;
-  core.setOutput("task-definition", taskDefinition);
-
-  const overrideContainerCommand = core.getMultilineInput(
-    "override-container-command",
-    {
-      required: false,
-    }
-  );
-
-  const taskParams = {
-    taskDefinition,
-    cluster,
-    launchType: "FARGATE",
-    networkConfiguration,
-  };
-
   try {
+    // Get network configuration from aws directly from describe services
+    core.debug("Getting information from service...");
+    const info = await ecs.describeServices({ cluster, services: [service] }).promise();
+
+    if (!info || !info.services[0]) {
+      throw new Error(`Could not find service ${service} in cluster ${cluster}`);
+    }
+
+    if (!info.services[0].networkConfiguration) {
+      throw new Error(`Service ${service} in cluster ${cluster} does not have a network configuration`);
+    }
+
+    const taskDefinition = info.services[0].taskDefinition;
+    const networkConfiguration = info.services[0].networkConfiguration;
+    core.setOutput("task-definition", taskDefinition);
+
+    const overrideContainerCommand = core.getMultilineInput(
+      "override-container-command",
+      {
+        required: false,
+      }
+    );
+
+    const taskParams = {
+      taskDefinition,
+      cluster,
+      launchType: "FARGATE",
+      networkConfiguration,
+    };
+
     if (overrideContainerCommand.length > 0 && !overrideContainer) {
       throw new Error(
         "override-container is required when override-container-command is set"
