@@ -6,6 +6,8 @@ const ecs = new AWS.ECS();
 const main = async () => {
   const cluster = core.getInput("cluster", { required: true });
   const service = core.getInput("service", { required: true });
+  const subnet = core.getInput("subnet");
+  const securityGroup = core.getInput("security-group");
 
   const overrideContainer = core.getInput("override-container", {
     required: false,
@@ -14,14 +16,32 @@ const main = async () => {
   try {
     // Get network configuration from aws directly from describe services
     core.debug("Getting information from service...");
-    const info = await ecs.describeServices({ cluster, services: [service] }).promise();
+    const info = await ecs
+      .describeServices({ cluster, services: [service] })
+      .promise();
 
     if (!info || !info.services[0]) {
-      throw new Error(`Could not find service ${service} in cluster ${cluster}`);
+      throw new Error(
+        `Could not find service ${service} in cluster ${cluster}`
+      );
     }
 
     const taskDefinition = info.services[0].taskDefinition;
-    const networkConfiguration = info.services[0].networkConfiguration || {};
+    let networkConfiguration = info.services[0].networkConfiguration;
+    if (!networkConfiguration) {
+      if (!subnet || !securityGroup) {
+        throw new Error(
+          `Could not find network configuration for ${service} in cluster ${cluster}`
+        );
+      }
+      networkConfiguration = {
+        awsvpcConfiguration: {
+          subnets: [subnet],
+          securityGroups: [securityGroup],
+          assignPublicIp: "ENABLED",
+        },
+      };
+    }
     core.setOutput("task-definition", taskDefinition);
 
     const overrideContainerCommand = core.getMultilineInput(
@@ -30,9 +50,6 @@ const main = async () => {
         required: false,
       }
     );
-
-    core.info("Launch type " + info.services[0].launchType);
-    core.info("Network " + JSON.stringify(networkConfiguration));
 
     const taskParams = {
       taskDefinition,
