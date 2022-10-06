@@ -31,6 +31,9 @@ const main = async () => {
       }
     );
 
+    core.info("Launch type " + info.services[0].launchType);
+    core.info("Network " + JSON.stringify(networkConfiguration));
+
     const taskParams = {
       taskDefinition,
       cluster,
