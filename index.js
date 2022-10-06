@@ -20,12 +20,8 @@ const main = async () => {
       throw new Error(`Could not find service ${service} in cluster ${cluster}`);
     }
 
-    if (!info.services[0].networkConfiguration) {
-      throw new Error(`Service ${service} in cluster ${cluster} does not have a network configuration`);
-    }
-
     const taskDefinition = info.services[0].taskDefinition;
-    const networkConfiguration = info.services[0].networkConfiguration;
+    const networkConfiguration = info.services[0].networkConfiguration || {};
     core.setOutput("task-definition", taskDefinition);
 
     const overrideContainerCommand = core.getMultilineInput(
@@ -38,7 +34,7 @@ const main = async () => {
     const taskParams = {
       taskDefinition,
       cluster,
-      launchType: "FARGATE",
+      launchType: taskDefinition.requiresCompatibilities[0],
       networkConfiguration,
     };
 
