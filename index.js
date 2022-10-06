@@ -34,7 +34,7 @@ const main = async () => {
     const taskParams = {
       taskDefinition,
       cluster,
-      launchType: taskDefinition.requiresCompatibilities[0],
+      launchType: info.services[0].launchType,
       networkConfiguration,
     };
 
