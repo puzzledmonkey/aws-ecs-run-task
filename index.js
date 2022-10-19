@@ -40,7 +40,7 @@ const main = async () => {
       launchType: info.services[0].launchType,
     };
 
-    if (info.services[0].launchType == "FARGATE") {
+    if (taskParams.networkMode == "awsvpc") {
       taskParams.networkConfiguration = info.services[0].networkConfiguration;
     }
 
