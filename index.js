@@ -40,7 +40,7 @@ const main = async () => {
       launchType: info.services[0].launchType,
     };
 
-    if (taskParams.networkMode == "awsvpc") {
+    if (info.services[0].launchType != "EC2") {
       taskParams.networkConfiguration = info.services[0].networkConfiguration;
     }
 
