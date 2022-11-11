@@ -70,6 +70,10 @@ const main = async () => {
     const taskArn = task.tasks[0].taskArn;
     core.setOutput("task-arn", taskArn);
 
+    core.info(
+      `Task logs on Amazon ECS console: https://console.aws.amazon.com/ecs/home?region=${AWS.config.region}#/clusters/${cluster}/tasks/${taskArn.split("/").pop()}/logs`
+    );
+
     core.debug("Waiting for task to finish...");
     await ecs.waitFor("tasksStopped", {
       cluster,
@@ -85,11 +89,6 @@ const main = async () => {
       core.setOutput("status", "success");
     } else {
       core.setFailed(task.tasks[0].stoppedReason);
-
-      const taskHash = taskArn.split("/").pop();
-      core.info(
-        `task failed, you can check the error on Amazon ECS console: https://console.aws.amazon.com/ecs/home?region=${AWS.config.region}#/clusters/${cluster}/tasks/${taskHash}/details`
-      );
     }
   } catch (error) {
     core.setFailed(error);
