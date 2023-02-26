@@ -42,11 +42,11 @@ const main = async () => {
         .listTasks({ cluster, family: service + '-' + suffix })
         .promise();
       if (existing && existing.taskArns && existing.taskArns.length > 0) {
-        core.debug('Stopping ' + existing.taskArns.length + ' existing tasks');
+        core.info('Stopping ' + existing.taskArns.length + ' existing tasks');
         existing.taskArns
           .map((e) => e.split('/').pop())
           .forEach((task) => {
-            core.debug('Stopping ' + task);
+            core.info('Stopping ' + task);
             ecs.stopTask({ cluster, task });
           });
       }
@@ -108,7 +108,7 @@ const main = async () => {
 
         const taskHash = taskArn.split('/').pop();
         core.info(
-          `task failed, you can check the error on Amazon ECS console: https://console.aws.amazon.com/ecs/home?region=${AWS.config.region}#/clusters/${cluster}/tasks/${taskHash}/details`
+          `Task failed, you can check the error on Amazon ECS console: https://console.aws.amazon.com/ecs/home?region=${AWS.config.region}#/clusters/${cluster}/tasks/${taskHash}/details`
         );
       }
     } else {
