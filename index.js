@@ -41,8 +41,8 @@ const main = async () => {
       const existing = await ecs
         .listTasks({ cluster, family: service + '-' + suffix })
         .promise();
-      if (existing && existing.taskArns?.length > 0) {
-        core.debug('Stopping ' + existing.taskArns?.length + ' existing tasks');
+      if (existing && existing.taskArns && existing.taskArns.length > 0) {
+        core.debug('Stopping ' + existing.taskArns.length + ' existing tasks');
         existing.taskArns
           .map((e) => e.split('/').pop())
           .forEach((task) => {
