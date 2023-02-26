@@ -6,7 +6,7 @@ const ecs = new AWS.ECS();
 const main = async () => {
   const cluster = core.getInput('cluster', { required: true });
   const service = core.getInput('service', { required: true });
-  const suffix = core.getInput('suffix', { required: false }) ?? 'task';
+  const suffix = core.getInput('suffix', { required: true });
   const waitForFinish =
     core.getInput('wait-for-finish', { required: false }) == 'true';
   const stopExisting =

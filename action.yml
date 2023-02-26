@@ -1,30 +1,31 @@
-name: "Run one-off task on ECS"
-description: "Run a task on ECS and waits for ECS task to finish."
+name: 'Run one-off task on ECS'
+description: 'Run a task on ECS and waits for ECS task to finish.'
 branding:
-  icon: "activity"
-  color: "white"
+  icon: 'activity'
+  color: 'white'
 inputs:
   cluster:
     description: "The name of the ECS service's cluster.  Will default to the 'default' cluster"
     required: false
   service:
-    description: "The name of the service"
+    description: 'The name of the service'
     required: true
+  suffix:
+    description: 'The suffix of the task name'
+    required: true
+  wait-for-finish:
+    description: 'Wait for the task to finish'
+    required: false
+  stop-existing:
+    description: 'Stop existing tasks with the same name'
+    required: false
   override-container:
-    description: "The container whose command should be overridden"
+    description: 'The container whose command should be overridden'
     required: false
   override-container-command:
-    description: "The command to to be run on the overrided container"
+    description: 'The command to to be run on the overrided container'
     required: false
 
-outputs:
-  task-arn:
-    description: "The ARN for the tash that finished running"
-  status:
-    description: "The status of the task, success for sucesssful tasks."
-  task-definition:
-    description: "Task definition uid"
-
 runs:
-  using: "node12"
-  main: "dist/index.js"
+  using: 'node12'
+  main: 'dist/index.js'
