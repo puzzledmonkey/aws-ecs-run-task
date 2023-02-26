@@ -38,19 +38,28 @@ const main = async () => {
     // core.setOutput('task-definition', taskDefinition);
 
     if (stopExisting) {
-      const existing = await ecs
-        .listTasks({ cluster, family: service + '-' + suffix })
-        .promise();
-      if (existing && existing.taskArns && existing.taskArns.length > 0) {
-        core.info('Stopping ' + existing.taskArns.length + ' existing tasks');
-        existing.taskArns
-          .map((e) => e.split('/').pop())
-          .forEach((task) => {
-            core.info('Stopping ' + task);
-            ecs.stopTask({ cluster, task });
-          });
+      const existingARNs = await ecs.listTasks({ cluster }).promise();
+      if (
+        existingARNs &&
+        existingARNs.taskArns &&
+        existingARNs.taskArns.length > 0
+      ) {
+        const existing = await ecs
+          .describeTasks({ cluster, tasks: existingARNs.taskArns })
+          .promise();
+        if (existing && existing.tasks) {
+          existing.tasks
+            .filter((t) => t.group == service + '-' + suffix)
+            .map((t) => t.taskArn.split('/').pop())
+            .forEach((task) => {
+              core.info('Stopping ' + task);
+              // ecs.stopTask({ cluster, task });
+            });
+        } else {
+          core.info('No existing tasks found');
+        }
       } else {
-        core.info('No existing tasks to stop');
+        core.info('No existing task ARNs found');
       }
     } else {
       core.info('Not stopping existing tasks');
