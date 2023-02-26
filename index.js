@@ -62,13 +62,16 @@ const main = async () => {
           })
           .promise();
         if (existing && existing.tasks) {
-          existing.tasks
+          const tasksIds = existing.tasks
             .filter((t) => t.group == name + ':' + service)
-            .map((t) => t.taskArn.split('/').pop())
-            .forEach((task) => {
-              core.info('Stopping existing task ID ' + task);
-              ecs.stopTask({ cluster, task });
-            });
+            .map((t) => t.taskArn.split('/').pop());
+          for (let i = 0; i < tasksIds.length; i++) {
+            core.info('Stopping existing task ID ' + tasksIds[i]);
+            const done = await ecs
+              .stopTask({ cluster, task: tasksIds[i] })
+              .promise();
+            core.info(done);
+          }
         } else {
           core.info('No existing tasks found');
         }
