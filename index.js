@@ -49,7 +49,11 @@ const main = async () => {
             core.info('Stopping ' + task);
             ecs.stopTask({ cluster, task });
           });
+      } else {
+        core.info('No existing tasks to stop');
       }
+    } else {
+      core.info('Not stopping existing tasks');
     }
 
     const taskParams = {
