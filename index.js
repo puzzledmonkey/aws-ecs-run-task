@@ -44,7 +44,6 @@ const main = async () => {
       .split(':')
       .shift();
     // core.setOutput('task-definition', taskDefinition);
-    core.info('Using task definition ' + taskDefinitionName);
 
     if (stopExisting) {
       const existingARNs = await ecs
@@ -67,19 +66,10 @@ const main = async () => {
             .map((t) => t.taskArn.split('/').pop());
           for (let i = 0; i < tasksIds.length; i++) {
             core.info('Stopping existing task ID ' + tasksIds[i]);
-            const done = await ecs
-              .stopTask({ cluster, task: tasksIds[i] })
-              .promise();
-            core.info(done);
+            await ecs.stopTask({ cluster, task: tasksIds[i] }).promise();
           }
-        } else {
-          core.info('No existing tasks found');
         }
-      } else {
-        core.info('No existing task ARNs found');
       }
-    } else {
-      core.info('Not stopping existing tasks');
     }
 
     const taskParams = {
