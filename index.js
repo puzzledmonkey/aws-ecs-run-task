@@ -6,7 +6,7 @@ const ecs = new AWS.ECS();
 const main = async () => {
   const cluster = core.getInput('cluster', { required: true });
   const service = core.getInput('service', { required: true });
-  const suffix = core.getInput('suffix', { required: true });
+  const name = core.getInput('name', { required: true });
   const waitForFinish = core.getBooleanInput('wait-for-finish', {
     required: false,
   });
@@ -20,10 +20,13 @@ const main = async () => {
     'override-container-command',
     { required: false }
   );
+  if (name == 'service') {
+    throw new Error(`Cannot start a task called 'service'`);
+  }
 
   try {
     // Get network configuration from aws directly from describe services
-    core.debug('Getting information from service...');
+    core.debug('Getting information from service');
     const info = await ecs
       .describeServices({ cluster, services: [service] })
       .promise();
@@ -35,7 +38,13 @@ const main = async () => {
     }
 
     const taskDefinition = info.services[0].taskDefinition;
+    const taskDefinitionName = taskDefinition
+      .split('/')
+      .pop()
+      .split(':')
+      .shift();
     // core.setOutput('task-definition', taskDefinition);
+    core.info('Using task definition ' + taskDefinitionName);
 
     if (stopExisting) {
       const existingARNs = await ecs.listTasks({ cluster }).promise();
@@ -45,11 +54,15 @@ const main = async () => {
         existingARNs.taskArns.length > 0
       ) {
         const existing = await ecs
-          .describeTasks({ cluster, tasks: existingARNs.taskArns })
+          .describeTasks({
+            cluster,
+            tasks: existingARNs.taskArns,
+            family: taskDefinitionName,
+          })
           .promise();
         if (existing && existing.tasks) {
           existing.tasks
-            .filter((t) => t.group == service + '-' + suffix)
+            .filter((t) => t.group == name + ':' + service)
             .map((t) => t.taskArn.split('/').pop())
             .forEach((task) => {
               core.info('Stopping ' + task);
@@ -69,7 +82,7 @@ const main = async () => {
       taskDefinition,
       cluster,
       launchType: info.services[0].launchType,
-      group: service + '-' + suffix,
+      group: name + ':' + service,
     };
 
     if (info.services[0].networkConfiguration) {
@@ -99,13 +112,13 @@ const main = async () => {
       }
     }
 
-    core.debug('Running task...');
+    core.debug('Running task');
     let task = await ecs.runTask(taskParams).promise();
     const taskArn = task.tasks[0].taskArn;
     // core.setOutput('task-arn', taskArn);
 
     if (waitForFinish) {
-      core.debug('Waiting for task to finish...');
+      core.debug('Waiting for task to finish');
       await ecs
         .waitFor('tasksStopped', { cluster, tasks: [taskArn] })
         .promise();
