@@ -47,7 +47,9 @@ const main = async () => {
     core.info('Using task definition ' + taskDefinitionName);
 
     if (stopExisting) {
-      const existingARNs = await ecs.listTasks({ cluster }).promise();
+      const existingARNs = await ecs
+        .listTasks({ cluster, family: taskDefinitionName })
+        .promise();
       if (
         existingARNs &&
         existingARNs.taskArns &&
@@ -57,7 +59,6 @@ const main = async () => {
           .describeTasks({
             cluster,
             tasks: existingARNs.taskArns,
-            family: taskDefinitionName,
           })
           .promise();
         if (existing && existing.tasks) {
