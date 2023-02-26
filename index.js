@@ -7,10 +7,12 @@ const main = async () => {
   const cluster = core.getInput('cluster', { required: true });
   const service = core.getInput('service', { required: true });
   const suffix = core.getInput('suffix', { required: true });
-  const waitForFinish =
-    core.getInput('wait-for-finish', { required: false }) == 'true';
-  const stopExisting =
-    core.getInput('stop-existing', { required: false }) == 'true';
+  const waitForFinish = core.getBooleanInput('wait-for-finish', {
+    required: false,
+  });
+  const stopExisting = core.getBooleanInput('stop-existing', {
+    required: false,
+  });
   const overrideContainer = core.getInput('override-container', {
     required: false,
   });
