@@ -66,8 +66,8 @@ const main = async () => {
             .filter((t) => t.group == name + ':' + service)
             .map((t) => t.taskArn.split('/').pop())
             .forEach((task) => {
-              core.info('Stopping ' + task);
-              // ecs.stopTask({ cluster, task });
+              core.info('Stopping existing task ID ' + task);
+              ecs.stopTask({ cluster, task });
             });
         } else {
           core.info('No existing tasks found');
