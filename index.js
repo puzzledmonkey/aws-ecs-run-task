@@ -6,11 +6,8 @@ const ecs = new AWS.ECS();
 const main = async () => {
   const cluster = core.getInput('cluster', { required: true });
   const service = core.getInput('service', { required: true });
-  const name = core.getInput('name', { required: true });
+  const group = core.getInput('group', { required: true });
   const waitForFinish = core.getBooleanInput('wait-for-finish', {
-    required: false,
-  });
-  const stopExisting = core.getBooleanInput('stop-existing', {
     required: false,
   });
   const overrideContainer = core.getInput('override-container', {
@@ -20,8 +17,8 @@ const main = async () => {
     'override-container-command',
     { required: false }
   );
-  if (name == 'service') {
-    throw new Error(`Cannot start a task called 'service'`);
+  if (group == 'service') {
+    throw new Error(`Cannot start a group called 'service'`);
   }
 
   try {
@@ -38,39 +35,7 @@ const main = async () => {
     }
 
     const taskDefinition = info.services[0].taskDefinition;
-    const taskDefinitionName = taskDefinition
-      .split('/')
-      .pop()
-      .split(':')
-      .shift();
     // core.setOutput('task-definition', taskDefinition);
-
-    if (stopExisting) {
-      const existingARNs = await ecs
-        .listTasks({ cluster, family: taskDefinitionName })
-        .promise();
-      if (
-        existingARNs &&
-        existingARNs.taskArns &&
-        existingARNs.taskArns.length > 0
-      ) {
-        const existing = await ecs
-          .describeTasks({
-            cluster,
-            tasks: existingARNs.taskArns,
-          })
-          .promise();
-        if (existing && existing.tasks) {
-          const tasksIds = existing.tasks
-            .filter((t) => t.group == name + ':' + service)
-            .map((t) => t.taskArn.split('/').pop());
-          for (let i = 0; i < tasksIds.length; i++) {
-            core.info('Stopping existing task ID ' + tasksIds[i]);
-            await ecs.stopTask({ cluster, task: tasksIds[i] }).promise();
-          }
-        }
-      }
-    }
 
     const taskParams = {
       taskDefinition,

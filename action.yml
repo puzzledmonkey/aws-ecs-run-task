@@ -5,19 +5,16 @@ branding:
   color: 'white'
 inputs:
   cluster:
-    description: "The name of the ECS service's cluster.  Will default to the 'default' cluster"
-    required: false
+    description: "The name of the ECS service's cluster."
+    required: true
   service:
     description: 'The name of the service'
     required: true
-  name:
-    description: 'The name of the task'
+  group:
+    description: 'The group for the task'
     required: true
   wait-for-finish:
     description: 'Wait for the task to finish'
-    required: false
-  stop-existing:
-    description: 'Stop existing tasks with the same name'
     required: false
   override-container:
     description: 'The container whose command should be overridden'
