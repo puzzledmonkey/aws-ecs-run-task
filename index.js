@@ -41,7 +41,7 @@ const main = async () => {
       taskDefinition,
       cluster,
       launchType: info.services[0].launchType,
-      group: name + ':' + service,
+      group: group + ':' + service,
     };
 
     if (info.services[0].networkConfiguration) {
