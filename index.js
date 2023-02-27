@@ -7,9 +7,8 @@ const main = async () => {
   const cluster = core.getInput('cluster', { required: true });
   const service = core.getInput('service', { required: true });
   const group = core.getInput('group', { required: true });
-  const waitForFinish = core.getBooleanInput('wait-for-finish', {
-    required: false,
-  });
+  const waitForFinish =
+    core.getInput('wait-for-finish', { required: false }) == 'true';
   const overrideContainer = core.getInput('override-container', {
     required: false,
   });
