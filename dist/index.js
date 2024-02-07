@@ -47080,14 +47080,6 @@ exports["default"] = _default;
 
 /***/ }),
 
-/***/ 159:
-/***/ ((module) => {
-
-module.exports = eval("require")("aws-sdk");
-
-
-/***/ }),
-
 /***/ 9491:
 /***/ ((module) => {
 
@@ -49029,7 +49021,6 @@ var __webpack_exports__ = {};
 // This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
 (() => {
 const core = __nccwpck_require__(2186);
-const AWS = __nccwpck_require__(159);
 
 const { ECS, waitUntilTasksStopped } = __nccwpck_require__(8209);
 

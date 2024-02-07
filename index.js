@@ -1,5 +1,4 @@
 const core = require("@actions/core");
-const AWS = require("aws-sdk");
 
 const { ECS, waitUntilTasksStopped } = require("@aws-sdk/client-ecs");
 
