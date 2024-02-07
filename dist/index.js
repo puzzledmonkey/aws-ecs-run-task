@@ -49094,7 +49094,7 @@ const main = async () => {
     core.setOutput("task-arn", taskArn);
 
     core.info(
-      `Task logs on Amazon ECS console: https://console.aws.amazon.com/ecs/home?region=${process.env.AWS_REGION}#/clusters/${cluster}/tasks/${taskArn.split("/").pop()}/logs`
+      `Task logs on Amazon ECS console: https://console.aws.amazon.com/ecs/v2/clusters/${cluster}/tasks/${taskArn.split("/").pop()}/logs?region=${process.env.AWS_REGION}`
     );
 
     core.debug("Waiting for task to finish...");
