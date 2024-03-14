@@ -1,7 +1,7 @@
 const core = require("@actions/core");
-const AWS = require("aws-sdk");
+const { ECS, waitUntilTasksStopped } = require("@aws-sdk/client-ecs");
 
-const ecs = new AWS.ECS();
+const ecs = new ECS();
 
 const main = async () => {
   const cluster = core.getInput("cluster", { required: true });
@@ -23,10 +23,7 @@ const main = async () => {
   try {
     // Get network configuration from aws directly from describe services
     core.debug("Getting information from service");
-    const info = await ecs
-      .describeServices({ cluster, services: [service] })
-      .promise();
-
+    const info = await ecs.describeServices({ cluster, services: [service] });
     if (!info || !info.services[0]) {
       // throw new Error(
       //   `Could not find service ${service} in cluster ${cluster}`
@@ -72,18 +69,25 @@ const main = async () => {
     }
 
     core.debug("Running task");
-    let task = await ecs.runTask(taskParams).promise();
+    let task = await ecs.runTask(taskParams);
     const taskArn = task.tasks[0].taskArn;
     // core.setOutput('task-arn', taskArn);
 
     if (waitForFinish) {
       core.debug("Waiting for task to finish");
-      await ecs
-        .waitFor("tasksStopped", { cluster, tasks: [taskArn] })
-        .promise();
+      await waitUntilTasksStopped(
+        {
+          client: ecs,
+          maxWaitTime: 6000,
+        },
+        {
+          cluster,
+          tasks: [taskArn],
+        }
+      );
 
       core.debug("Checking status of task");
-      task = await ecs.describeTasks({ cluster, tasks: [taskArn] }).promise();
+      task = await ecs.describeTasks({ cluster, tasks: [taskArn] });
       const exitCode = task.tasks[0].containers[0].exitCode;
 
       if (exitCode === 0) {
