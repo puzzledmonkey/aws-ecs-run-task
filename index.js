@@ -1,36 +1,37 @@
-const core = require('@actions/core');
-const AWS = require('aws-sdk');
+const core = require("@actions/core");
+const AWS = require("aws-sdk");
 
 const ecs = new AWS.ECS();
 
 const main = async () => {
-  const cluster = core.getInput('cluster', { required: true });
-  const service = core.getInput('service', { required: true });
-  const group = core.getInput('group', { required: true });
+  const cluster = core.getInput("cluster", { required: true });
+  const service = core.getInput("service", { required: true });
+  const group = core.getInput("group", { required: true });
   const waitForFinish =
-    core.getInput('wait-for-finish', { required: false }) == 'true';
-  const overrideContainer = core.getInput('override-container', {
+    core.getInput("wait-for-finish", { required: false }) == "true";
+  const overrideContainer = core.getInput("override-container", {
     required: false,
   });
   const overrideContainerCommand = core.getMultilineInput(
-    'override-container-command',
+    "override-container-command",
     { required: false }
   );
-  if (group == 'service') {
+  if (group == "service") {
     throw new Error(`Cannot start a group called 'service'`);
   }
 
   try {
     // Get network configuration from aws directly from describe services
-    core.debug('Getting information from service');
+    core.debug("Getting information from service");
     const info = await ecs
       .describeServices({ cluster, services: [service] })
       .promise();
 
     if (!info || !info.services[0]) {
-      throw new Error(
-        `Could not find service ${service} in cluster ${cluster}`
-      );
+      // throw new Error(
+      //   `Could not find service ${service} in cluster ${cluster}`
+      // );
+      return;
     }
 
     const taskDefinition = info.services[0].taskDefinition;
@@ -40,7 +41,7 @@ const main = async () => {
       taskDefinition,
       cluster,
       launchType: info.services[0].launchType,
-      group: group + ':' + service,
+      group: group + ":" + service,
     };
 
     if (info.services[0].networkConfiguration) {
@@ -49,7 +50,7 @@ const main = async () => {
 
     if (overrideContainerCommand.length > 0 && !overrideContainer) {
       throw new Error(
-        'override-container is required when override-container-command is set'
+        "override-container is required when override-container-command is set"
       );
     }
 
@@ -65,23 +66,23 @@ const main = async () => {
         };
       } else {
         throw new Error(
-          'override-container-command is required when override-container is set'
+          "override-container-command is required when override-container is set"
         );
       }
     }
 
-    core.debug('Running task');
+    core.debug("Running task");
     let task = await ecs.runTask(taskParams).promise();
     const taskArn = task.tasks[0].taskArn;
     // core.setOutput('task-arn', taskArn);
 
     if (waitForFinish) {
-      core.debug('Waiting for task to finish');
+      core.debug("Waiting for task to finish");
       await ecs
-        .waitFor('tasksStopped', { cluster, tasks: [taskArn] })
+        .waitFor("tasksStopped", { cluster, tasks: [taskArn] })
         .promise();
 
-      core.debug('Checking status of task');
+      core.debug("Checking status of task");
       task = await ecs.describeTasks({ cluster, tasks: [taskArn] }).promise();
       const exitCode = task.tasks[0].containers[0].exitCode;
 
@@ -90,7 +91,7 @@ const main = async () => {
       } else {
         core.setFailed(task.tasks[0].stoppedReason);
 
-        const taskHash = taskArn.split('/').pop();
+        const taskHash = taskArn.split("/").pop();
         core.info(
           `Task failed, you can check the error on Amazon ECS console: https://console.aws.amazon.com/ecs/home?region=${AWS.config.region}#/clusters/${cluster}/tasks/${taskHash}/details`
         );
