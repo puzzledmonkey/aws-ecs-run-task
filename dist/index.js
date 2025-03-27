@@ -50043,25 +50043,32 @@ const main = async () => {
     // Get network configuration from aws directly from describe services
     core.debug("Getting information from service");
     const info = await ecs.describeServices({ cluster, services: [service] });
-    if (!info || !info.services[0]) {
+    if (
+      !info ||
+      !info.services.find((service) => service.status === "ACTIVE")
+    ) {
       // throw new Error(
       //   `Could not find service ${service} in cluster ${cluster}`
       // );
       return;
     }
 
-    const taskDefinition = info.services[0].taskDefinition;
+    const runningService = info.services.find(
+      (service) => service.status === "ACTIVE"
+    );
+
+    const taskDefinition = runningService.taskDefinition;
     // core.setOutput('task-definition', taskDefinition);
 
     const taskParams = {
       taskDefinition,
       cluster,
-      launchType: info.services[0].launchType,
+      launchType: runningService.launchType,
       group: group + ":" + service,
     };
 
-    if (info.services[0].networkConfiguration) {
-      taskParams.networkConfiguration = info.services[0].networkConfiguration;
+    if (runningService.networkConfiguration) {
+      taskParams.networkConfiguration = runningService.networkConfiguration;
     }
 
     if (overrideContainerCommand.length > 0 && !overrideContainer) {
